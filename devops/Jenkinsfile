@@ -33,7 +33,8 @@ pipeline {
                 }
             }
             steps {
-                sh 'echo "Job: ${env.JOB_NAME}, Build: ${env.BUILD_NUMBER}"'
+                sh 'echo "Job: ${env.JOB_NAME}'
+                sh 'echo "Build: ${env.BUILD_NUMBER}"'
             }
         }
         // final del bloque de stages
