@@ -25,7 +25,7 @@ pipeline {
             }
         }
         // STAGES DE EJERCICIOS
-        // practica 2.1
+        // ejercicio 2.1
         stage('Info') {
             steps {
                 echo "Job: ${env.JOB_NAME}"
