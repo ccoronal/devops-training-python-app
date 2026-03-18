@@ -4,16 +4,6 @@ pipeline {
 
     stages {
         /*
-       stage('Test') {
-           agent {
-               docker {
-                   image 'maven:3.8.6-openjdk-11-slim'
-               }
-           }
-            steps {
-                sh 'pytest -q'
-            }
-        }
         stage('Lint') {
             agent {
                 docker {
@@ -30,9 +20,22 @@ pipeline {
         // ejercicio 2.1
         stage('Info') {
             steps {
+                echo "2.1 Info"
                 echo "Job: ${env.JOB_NAME}"
                 echo "Build: ${env.BUILD_NUMBER}"
                 echo "Branch: ${env.BRANCH_NAME}"
+            }
+        }
+        // ejercicio 2.2
+        stage('Test') {
+            agent {
+                docker {
+                    image 'python:3.6-slim'
+                }
+            }
+            steps {
+                echo "2.2 Pruebas unitarias"
+                sh 'pytest -q'
             }
         }
         // final del bloque de stages
