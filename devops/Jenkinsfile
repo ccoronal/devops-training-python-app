@@ -34,7 +34,7 @@ pipeline {
                 }
             }
             steps {
-                echo "2.2 Pruebas unitarias"
+                echo "2.2 Unit test"
                 sh 'pytest -q'
             }
         }
