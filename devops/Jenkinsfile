@@ -4,7 +4,6 @@ pipeline {
 
     stages {
 
-        // STAGES DE EJERCICIOS
         // ejercicio 2.1
         stage('Info') {
             steps {
@@ -23,7 +22,6 @@ pipeline {
             }
             steps {
                 sh 'python --version'
-                sh 'pip install -r requirements.txt flake8 mypy'
                 sh 'make lint'
             }
         }
