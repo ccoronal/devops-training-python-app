@@ -27,7 +27,20 @@ pipeline {
             }
         }
         // ejercicio 2.2 y 2.3
-        stage('Test') {
+        stage('CI - Lint') {
+            agent {
+                docker {
+                    image 'python:3.6-slim'
+                }
+            }
+            steps {
+                sh 'python --version'
+                sh 'pip install -r requirements.txt flake8 mypy'
+                sh 'make lint'
+            }
+        }
+
+        stage('CI - Test') {
             agent {
                 docker {
                     image 'python:3.6-slim'
@@ -35,6 +48,8 @@ pipeline {
             }
             steps {
                 echo "2.2 Unit test"
+                sh 'python --version'
+                sh 'pip install -r requirements.txt'
                 sh 'pytest -q'
             }
         }
