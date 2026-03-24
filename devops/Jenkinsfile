@@ -15,13 +15,9 @@ pipeline {
         }
         // ejercicio 2.2 + 2.3
         stage('CI - Lint') {
-            agent {
-                docker {
-                    image 'python:3.6-slim'
-                }
-            }
             steps {
                 sh 'python --version'
+                sh 'pip install -r requirements.txt'
                 sh 'make lint'
             }
         }
@@ -34,8 +30,6 @@ pipeline {
             }
             steps {
                 echo "2.2 Unit test"
-                sh 'python --version'
-                sh 'pip install -r requirements.txt'
                 sh 'pytest -q'
             }
         }
