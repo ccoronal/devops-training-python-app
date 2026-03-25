@@ -1,41 +1,54 @@
+// FUNCIONES
+def runInDocker(String image, Closure body) {
+    docker.image(image).inside { body() }
+}
+
+// PIPELINE
 pipeline {
 
     agent any
 
     stages {
 
-        // ejercicio 2.1
         stage('Info') {
             steps {
-                echo "2.1 Info"
+                echo "Info"
                 echo "Job: ${env.JOB_NAME}"
                 echo "Build: ${env.BUILD_NUMBER}"
                 echo "Branch: ${env.BRANCH_NAME}"
             }
         }
-        // ejercicio 2.2 + 2.3
-        stage('CI - Lint') {
-            agent {
-                docker {
-                    image 'python:3.6-slim'
+
+        stage('CI - Build tools image') {
+            steps {
+                script {
+                    docker.build(env.CI_IMAGE_NAME, "-f devops/ci.Dockerfile .")
                 }
             }
+        }
+
+        stage('CI - Lint') {
             steps {
-                sh 'python --version'
-                sh 'pip install -r requirements.txt'
-                sh 'make lint'
+                script {
+                    devopsLib.runInDocker(env.CI_IMAGE_NAME) {
+                        sh 'python --version'
+                        sh 'pip install -r requirements.txt flake8 mypy'
+                        sh 'make lint'
+                    }
+                }
             }
         }
 
         stage('CI - Test') {
-            agent {
-                docker {
-                    image 'python:3.6-slim'
-                }
-            }
             steps {
-                echo "2.2 Unit test"
-                sh 'pytest -q'
+                script {
+                    devopsLib.runInDocker(env.CI_IMAGE_NAME) {
+                        echo "Unit test"
+                        sh 'python --version'
+                        sh 'pip install -r requirements.txt'
+                        sh 'pytest -q'
+                    }
+                }
             }
         }
         // final del bloque de stages
