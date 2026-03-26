@@ -21,14 +21,6 @@ pipeline {
             }
         }
 
-        stage('CI - Build tools image') {
-            steps {
-                script {
-                    docker.build(env.CI_IMAGE_NAME, "-f devops/ci.Dockerfile .")
-                }
-            }
-        }
-
         stage('CI - Lint') {
             steps {
                 script {
