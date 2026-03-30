@@ -10,6 +10,21 @@ pipeline {
 
     agent any
 
+    parameters {
+        booleanParam(name: 'RUN_CD', defaultValue: false, description: 'Ejecutar CD')
+        booleanParam(name: 'ENABLE_REGISTRY_PUSH', defaultValue: false, description: 'Publicar imagen en local-registry')
+    }
+
+    environment {
+        IMAGE_REPO = 'ccoronal/devops-training-python-app'
+        APP_URL = 'http://localhost:8080/'
+        COMPOSE_FILE = 'docker-compose.yml'
+        COMPOSE_SERVICE = 'app'
+        REGISTRY = 'local-registry:5000'
+        REGISTRY_REPO = 'ccoronal/devops-training-python-app'
+        REGISTRY_CREDS_ID = 'local-registry-creds'
+    }
+
     stages {
 
         stage('Info') {
@@ -18,6 +33,26 @@ pipeline {
                 echo "Job: ${env.JOB_NAME}"
                 echo "Build: ${env.BUILD_NUMBER}"
                 echo "Branch: ${env.BRANCH_NAME}"
+            }
+        }
+
+        stage('Init - Versionado') {
+            steps {
+                script {
+                    env.IMAGE_VERSION = devopsLib.readVersion('VERSION')
+                    env.IMAGE_NAME = "${env.IMAGE_REPO}:${env.IMAGE_VERSION}"
+                    env.CI_IMAGE_NAME = "python-ci-tools:${env.BUILD_NUMBER}"
+                    echo "Imagen seleccionada: ${env.IMAGE_NAME}"
+                    echo "Imagen CI: ${env.CI_IMAGE_NAME}"
+                }
+            }
+        }
+
+        stage('CI - Build tools image') {
+            steps {
+                script {
+                    docker.build(env.CI_IMAGE_NAME, "-f devops/ci.Dockerfile .")
+                }
             }
         }
 
@@ -42,6 +77,55 @@ pipeline {
                         sh 'pip install -r requirements.txt'
                         sh 'pytest -q'
                     }
+                }
+            }
+        }
+
+        stage('CI - Build image') {
+            steps {
+                script {
+                    docker.build(env.IMAGE_NAME, '-f devops/Dockerfile .')
+                }
+            }
+        }
+
+        stage('CD') {
+            when {
+                anyOf {
+                    expression { return params.RUN_CD }
+                    branch 'develop'
+                    branch 'master'
+                }
+            }
+            steps {
+                script {
+                    env.DEPLOY_ENV = (env.BRANCH_NAME == 'master') ? 'PRO' : 'DEV'
+                    env.COMPOSE_PROJECT = env.DEPLOY_ENV.toLowerCase()
+                    echo "Deploying to ${env.DEPLOY_ENV}"
+
+                    devopsLib.setComposeServiceImage(
+                            composeFile: env.COMPOSE_FILE,
+                            serviceName: env.COMPOSE_SERVICE,
+                            image: env.IMAGE_NAME
+                    )
+
+                    devopsLib.composeUpTestDown(
+                            up: "docker compose -p ${env.COMPOSE_PROJECT} up -d app",
+                            test: "sleep 5 && docker compose -p ${env.COMPOSE_PROJECT} logs app",
+                            down: "docker compose -p ${env.COMPOSE_PROJECT} down --volumes"
+                    )
+                }
+            }
+            post {
+                always {
+                    sh "docker rmi ${env.IMAGE_NAME} || true"
+                }
+                success {
+                    echo 'SUCCESS'
+                }
+                failure {
+                    echo 'FAILURE'
+                    sh "docker compose -p ${env.COMPOSE_PROJECT} logs || true"
                 }
             }
         }
