@@ -110,10 +110,22 @@ pipeline {
                     )
 
                     devopsLib.composeUpTestDown(
-                            up: "docker compose -p ${env.COMPOSE_PROJECT} up -d",
-                            test: "sleep 10 && docker compose -p ${env.COMPOSE_PROJECT} logs app",
+                            up: "docker compose -p ${env.COMPOSE_PROJECT} up -d app",
+                            test: "sleep 5 && docker compose -p ${env.COMPOSE_PROJECT} logs app",
                             down: "docker compose -p ${env.COMPOSE_PROJECT} down --volumes"
                     )
+                }
+            }
+            post {
+                always {
+                    sh "docker rmi ${env.IMAGE_NAME} || true"
+                }
+                success {
+                    echo 'SUCCESS'
+                }
+                failure {
+                    echo 'FAILURE'
+                    sh "docker compose -p ${env.COMPOSE_PROJECT} logs || true"
                 }
             }
         }
