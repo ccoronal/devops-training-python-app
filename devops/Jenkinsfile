@@ -17,7 +17,7 @@ pipeline {
 
     environment {
         IMAGE_REPO = 'ccoronal/devops-training-python-app'
-        APP_URL = 'http://localhost:8080/'
+        APP_URL = 'http://localhost:8080'
         COMPOSE_FILE = 'docker-compose.yml'
         COMPOSE_SERVICE = 'app'
         REGISTRY = 'local-registry:5000'
@@ -80,7 +80,7 @@ pipeline {
                 }
             }
         }
-
+        /*
         stage('CI - Build image') {
             steps {
                 script {
@@ -129,6 +129,7 @@ pipeline {
                 }
             }
         }
+        */
         // final del bloque de stages
     }
 }
