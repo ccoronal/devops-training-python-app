@@ -35,7 +35,7 @@ pipeline {
                 echo "Branch: ${env.BRANCH_NAME}"
             }
         }
-
+        /*
         stage('Init - Versionado') {
             steps {
                 script {
@@ -55,7 +55,7 @@ pipeline {
                 }
             }
         }
-
+        */
         stage('CI - Lint') {
             steps {
                 script {
