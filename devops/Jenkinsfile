@@ -12,6 +12,8 @@ pipeline {
 
     agent any
 
+    agent { dockerfile true }
+
     parameters {
         booleanParam(name: 'RUN_CD', defaultValue: false, description: 'Ejecutar CD')
         booleanParam(name: 'ENABLE_REGISTRY_PUSH', defaultValue: false, description: 'Publicar imagen en local-registry')
