@@ -10,9 +10,7 @@ def runInDocker(String image, Closure body) {
 // PIPELINE
 pipeline {
 
-    // agent any
-
-    agent { dockerfile true }
+    agent any
 
     parameters {
         booleanParam(name: 'RUN_CD', defaultValue: false, description: 'Ejecutar CD')
