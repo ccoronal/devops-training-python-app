@@ -10,7 +10,7 @@ def runInDocker(String image, Closure body) {
 // PIPELINE
 pipeline {
 
-    agent any
+    // agent any
 
     agent { dockerfile true }
 
