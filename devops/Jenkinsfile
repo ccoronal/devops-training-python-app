@@ -1,4 +1,6 @@
 // FUNCIONES
+@Library('iac-devops-lib') _
+/*
 import jenkins.model.*
 
 def runInDocker(String image, Closure body) {
@@ -6,7 +8,7 @@ def runInDocker(String image, Closure body) {
         body()
     }
 }
-
+*/
 // PIPELINE
 pipeline {
 
