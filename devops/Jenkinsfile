@@ -83,7 +83,7 @@ pipeline {
                 }
             }
         }
-        /*
+
         stage('CD') {
             when {
                 anyOf {
@@ -124,7 +124,7 @@ pipeline {
                 }
             }
         }
-        */
+
         // final del bloque de stages
     }
 }
