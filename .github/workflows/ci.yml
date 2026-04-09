@@ -1,20 +1,32 @@
-# Práctica 3 - GitHub Actions (dummy)
-#
-# Punto de partida: workflow mínimo para validar que Actions funciona en el repo.
-# En la Práctica 3 irás ampliando este workflow para llegar a CI/CD.
-
-name: CI (dummy)
+name: "CI/CD"
 
 on:
+  push:
+  pull_request:
+    branches: [develop, master]
   workflow_dispatch:
+    inputs:
+      RUN_CD:
+        description: "Run CD stage"
+        required: false
+        type: boolean
+        default: false
+      ENABLE_REGISTRY_PUSH:
+        description: "Push image to registry"
+        required: false
+        type: boolean
+        default: false
+      ENABLE_ARTIFACTORY_UPLOAD:
+        description: "Upload JAR to Artifactory"
+        required: false
+        type: boolean
+        default: false
 
-jobs:
-  dummy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Mostrar contexto
-        run: |
-          echo "Repo: $GITHUB_REPOSITORY"
-          echo "Ref:  $GITHUB_REF"
-          echo "Branch: $GITHUB_REF_NAME"
-
+env:
+  IMAGE_REPO: ${{ vars.JAVA_IMAGE_REPO }}
+  REGISTRY_HOST: ${{ vars.REGISTRY_HOST }}
+  REGISTRY_REPO: ${{ vars.REGISTRY_REPO }}
+  ARTIFACTORY_URL: ${{ vars.ARTIFACTORY_URL }}
+  ARTIFACTORY_REPO: ${{ vars.ARTIFACTORY_REPO }}
+  COMPOSE_FILE: docker-compose.yml
+  COMPOSE_SERVICE: app
