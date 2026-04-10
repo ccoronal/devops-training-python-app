@@ -16,18 +16,11 @@ on:
         required: false
         type: boolean
         default: false
-      ENABLE_ARTIFACTORY_UPLOAD:
-        description: "Upload JAR to Artifactory"
-        required: false
-        type: boolean
-        default: false
 
 env:
-  IMAGE_REPO: ${{ vars.JAVA_IMAGE_REPO }}
+  IMAGE_REPO: ${{ vars.PYTHON_IMAGE_REPO }}
   REGISTRY_HOST: ${{ vars.REGISTRY_HOST }}
   REGISTRY_REPO: ${{ vars.REGISTRY_REPO }}
-  ARTIFACTORY_URL: ${{ vars.ARTIFACTORY_URL }}
-  ARTIFACTORY_REPO: ${{ vars.ARTIFACTORY_REPO }}
   COMPOSE_FILE: docker-compose.yml
   COMPOSE_SERVICE: app
 
@@ -41,11 +34,9 @@ jobs:
       - name: Set version
         run: |
           echo "IMAGE_VERSION=$(cat VERSION)" >> $GITHUB_ENV
-          echo "VERSION_JAR=$(cat VERSION)-SNAPSHOT" >> $GITHUB_ENV
           echo "IMAGE_NAME=${IMAGE_REPO}:$(cat VERSION)" >> $GITHUB_ENV
-          echo "CI_IMAGE=java-ci-tools:${GITHUB_RUN_ID}" >> $GITHUB_ENV
+          echo "CI_IMAGE=python-ci-tools:${GITHUB_RUN_ID}" >> $GITHUB_ENV
           echo "REGISTRY_IMAGE=${REGISTRY_HOST}/${REGISTRY_REPO}:$(cat VERSION)" >> $GITHUB_ENV
-          echo "ARTIFACTORY_PATH=devops-training-java-app/${GITHUB_RUN_ID}" >> $GITHUB_ENV
 
       - name: Build CI image
         run: docker build -t "${CI_IMAGE}" -f devops/ci.Dockerfile .
@@ -53,25 +44,15 @@ jobs:
       - name: CI - Lint
         run: |
           docker run --rm -v "${GITHUB_WORKSPACE}:/app" -w /app "${CI_IMAGE}" sh -lc \
-            "make lint"
+            "pip install -r requirements.txt flake8 mypy && make lint"
 
       - name: CI - Test
         run: |
           docker run --rm -v "${GITHUB_WORKSPACE}:/app" -w /app "${CI_IMAGE}" sh -lc \
-            "make test"
+            "pip install -r requirements.txt && pytest -q"
 
       - name: CI - Build image
-        run: docker build -t "${IMAGE_NAME}" --build-arg VERSION="${VERSION_JAR}" -f devops/Dockerfile .
-
-      - name: CI - Upload jar (optional)
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.ENABLE_ARTIFACTORY_UPLOAD == true }}
-        run: |
-          docker run --rm -v "${GITHUB_WORKSPACE}:/app" -w /app "${CI_IMAGE}" sh -lc \
-            "mvn -q -DskipTests package"
-          JAR_FILE=$(ls target/*.jar | head -n 1)
-          curl -u "${{ secrets.ARTIFACTORY_USER }}:${{ secrets.ARTIFACTORY_PASSWORD }}" \
-            -T "${JAR_FILE}" \
-            "${ARTIFACTORY_URL}/${ARTIFACTORY_REPO}/${ARTIFACTORY_PATH}/$(basename ${JAR_FILE})"
+        run: docker build -t "${IMAGE_NAME}" -f devops/Dockerfile .
 
       - name: CI - Push image (optional)
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.ENABLE_REGISTRY_PUSH == true }}
@@ -91,14 +72,13 @@ jobs:
       - name: Set deploy vars
         run: |
           echo "IMAGE_VERSION=$(cat VERSION)" >> $GITHUB_ENV
-          echo "VERSION_JAR=$(cat VERSION)-SNAPSHOT" >> $GITHUB_ENV
           echo "IMAGE_NAME=${IMAGE_REPO}:$(cat VERSION)" >> $GITHUB_ENV
           if [ "${GITHUB_REF_NAME}" = "master" ]; then DEPLOY_ENV=PRO; else DEPLOY_ENV=DEV; fi
           echo "DEPLOY_ENV=${DEPLOY_ENV}" >> $GITHUB_ENV
           echo "COMPOSE_PROJECT=$(echo ${DEPLOY_ENV} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Build app image
-        run: docker build -t "${IMAGE_NAME}" --build-arg VERSION="${VERSION_JAR}" -f devops/Dockerfile .
+        run: docker build -t "${IMAGE_NAME}" -f devops/Dockerfile .
 
       - name: CD - Compose up
         run: |
