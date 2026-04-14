@@ -18,9 +18,9 @@ on:
         default: false
 
 env:
-  IMAGE_REPO: ${{ vars.PYTHON_IMAGE_REPO }}
-  REGISTRY_HOST: ${{ vars.REGISTRY_HOST }}
-  REGISTRY_REPO: ${{ vars.REGISTRY_REPO }}
+  IMAGE_REPO: 'ccoronal/devops-training-python-app'
+  REGISTRY_HOST: 'local-registry:5000'
+  REGISTRY_REPO: 'ccoronal/devops-training-python-app'
   COMPOSE_FILE: docker-compose.yml
   COMPOSE_SERVICE: app
 
