@@ -21,6 +21,8 @@ env:
   IMAGE_REPO: 'ccoronal/devops-training-python-app'
   REGISTRY_HOST: 'local-registry:5000'
   REGISTRY_REPO: 'ccoronal/devops-training-python-app'
+  ARTIFACTORY_URL: 'http://artifactory:8081/artifactory'
+  ARTIFACTORY_REPO: libs-release-local
   COMPOSE_FILE: docker-compose.yml
   COMPOSE_SERVICE: app
 
@@ -53,13 +55,6 @@ jobs:
 
       - name: CI - Build image
         run: docker build -t "${IMAGE_NAME}" -f devops/Dockerfile .
-
-      - name: CI - Push image (optional)
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.ENABLE_REGISTRY_PUSH == true }}
-        run: |
-          echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login "${REGISTRY_HOST}" -u "${{ secrets.REGISTRY_USER }}" --password-stdin
-          docker tag "${IMAGE_NAME}" "${REGISTRY_IMAGE}"
-          docker push "${REGISTRY_IMAGE}"
 
   cd:
     needs: ci
