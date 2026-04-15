@@ -46,12 +46,12 @@ jobs:
       - name: CI - Lint
         run: |
           docker run --rm -v "${GITHUB_WORKSPACE}:/app" -w /app "${CI_IMAGE}" sh -lc \
-            "pip install -r requirements.txt flake8 mypy && make lint"
+            "pip install -r requirements.txt && make lint"
 
       - name: CI - Test
         run: |
           docker run --rm -v "${GITHUB_WORKSPACE}:/app" -w /app "${CI_IMAGE}" sh -lc \
-            "pip install -r requirements.txt && pytest -q"
+            "pip install -r requirements.txt && pip install psycopg2-binary && pytest -q" 
 
       - name: CI - Build image
         run: docker build -t "${IMAGE_NAME}" -f devops/Dockerfile .
